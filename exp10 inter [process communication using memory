@@ -1,0 +1,42 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+#define MAX_SIZE 1024
+
+// Define the structure for the message
+struct msg_buffer {
+    long msg_type;
+    char msg_text[MAX_SIZE];
+};
+
+int main() {
+    key_t key;
+    int msg_id;
+    struct msg_buffer msg;
+
+    
+    key = ftok("msgq_prog", 65);
+
+    
+    msg_id = msgget(key, 0666 | IPC_CREAT);
+
+   
+    printf("Enter message to be sent to the queue: ");
+    fgets(msg.msg_text, MAX_SIZE, stdin);
+
+   
+    msg.msg_type = 1;
+    msgsnd(msg_id, &msg, sizeof(msg), 0);
+
+    printf("Message sent to the queue: %s\n", msg.msg_text);
+    msgrcv(msg_id, &msg, sizeof(msg), 1, 0);
+
+    printf("Message received from the queue: %s\n", msg.msg_text);
+    msgctl(msg_id, IPC_RMID, NULL);
+
+    return 0;
+}
